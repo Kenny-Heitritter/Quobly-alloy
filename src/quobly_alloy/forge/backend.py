@@ -80,6 +80,8 @@ class PioneerEmulator(GenericBackendV2):
     will use the gpu if possible."""
     _env_generative_function: Callable
     """Function to generate and attach the environment to the pulse circuit."""
+    _max_used_core: int
+    """Maximum number of core used by the backend"""
 
     def __init__(
         self,
@@ -87,6 +89,7 @@ class PioneerEmulator(GenericBackendV2):
         qubits: int | None = None,
         seed: int | None = None,
         always_use_cpu: bool = False,
+        max_used_core: int = 1,
     ):
         self._always_use_cpu = always_use_cpu
         if target_qpu not in [QPU.PIONEER_P10]:
@@ -99,6 +102,7 @@ class PioneerEmulator(GenericBackendV2):
             num_qubits=nb_qbit, basis_gates=basis_gates, coupling_map=coupling_map
         )
         self._options = options
+        self._max_used_core = max_used_core
 
     def max_circuits(self) -> int:
         """Return the max number of parallel circuit the backend can run,
@@ -167,6 +171,7 @@ class PioneerEmulator(GenericBackendV2):
             shots,
             False,
             _seed_continuation if self._seed else None,
+            n_jobs=self._max_used_core,
         )
 
         qreg = {}

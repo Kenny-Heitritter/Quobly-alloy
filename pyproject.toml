@@ -27,7 +27,7 @@ build-backend = "setuptools.build_meta"
 dependencies = [
     "ruff",
     "mypy",
-    "spin-pulse>=1.1",
+    "spin-pulse>=1.1.2",
     "qiskit>2.2",
     "qiskit-aer>=0.17",
   ]
