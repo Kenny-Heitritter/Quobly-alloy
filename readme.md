@@ -47,6 +47,13 @@ emulator = PioneerEmulator(QPU.PIONEER_P10,seed = 100)
 result = emulator.run_simulation(circuit=circuit,shots=1000)
 ```
 
+In addition one can select the number of core used for the emulation with (note that max_used_core is capped by the number of core of your hardware):
+
+```python
+emulator = PioneerEmulator(QPU.PIONEER_P10,max_used_core=6)
+result = emulator.run_simulation(circuit=circuit,shots=1000,noise=False)
+```
+
 You can also remove the injected noise using:
 
 ```python

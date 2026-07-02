@@ -14,4 +14,4 @@ def circuit() -> QuantumCircuit:
 
 @pytest.fixture()
 def emulator() -> PioneerEmulator:
-    return PioneerEmulator(QPU.PIONEER_P10, seed=100)
+    return PioneerEmulator(QPU.PIONEER_P10, seed=100, max_used_core=6)

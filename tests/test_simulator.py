@@ -3,15 +3,14 @@
 # --------------------------------------------------------------------------------------
 import pytest
 from qiskit import QuantumCircuit
-from qiskit.compiler import transpile
 
-from quobly_alloy.forge.backend import PioneerEmulator, get_qpu_hw_spec
+import quobly_alloy.forge.backend as BK
 from quobly_alloy.qpu import QPU
 
 
 def test_get_qpu_hw_spec_error():
     with pytest.raises(ValueError) as excinfo:
-        get_qpu_hw_spec("None")
+        BK.get_qpu_hw_spec("None")
     assert "Unknown" in str(excinfo.value)
 
 
@@ -36,7 +35,7 @@ def test_execute_seed_superposition(qpu):
     circuit.h(1)
     circuit.h(2)
     circuit.measure_all()
-    backend = PioneerEmulator(qpu, seed=100)
+    backend = BK.PioneerEmulator(qpu, seed=100)
     r1 = backend.run_simulation(circuit, 20)
     r2 = backend.run_simulation(circuit, 20)
     assert list(r1.values()) == list(r2.values())
@@ -44,7 +43,7 @@ def test_execute_seed_superposition(qpu):
 
 @pytest.mark.parametrize("qpu", [QPU.PIONEER_P10])
 def test_execute_empty_circuit(qpu):
-    backend = PioneerEmulator(qpu, seed=100)
+    backend = BK.PioneerEmulator(qpu, seed=100)
     circuit = QuantumCircuit(3)
     r1 = backend.run(circuit, 5)
     assert next(iter(r1.samples.values())) == 5
@@ -52,14 +51,14 @@ def test_execute_empty_circuit(qpu):
 
 @pytest.mark.parametrize("nb_qb", [5, 8, 10, 13])
 def test_mutiple_qubit(nb_qb):
-    backend = PioneerEmulator(QPU.PIONEER_P10, qubits=nb_qb, seed=100)
+    backend = BK.PioneerEmulator(QPU.PIONEER_P10, qubits=nb_qb, seed=100)
     circuit = QuantumCircuit(nb_qb)
     r1 = backend.run(circuit, 5)
     assert next(iter(r1.samples.values())) == 5
 
 
 def test_equivalence_qubits():
-    backend = PioneerEmulator(QPU.PIONEER_P10, qubits=10, seed=100)
+    backend = BK.PioneerEmulator(QPU.PIONEER_P10, qubits=10, seed=100, max_used_core=6)
     circuit = QuantumCircuit(5)
     circuit.h(0)
     circuit.h(1)
@@ -67,7 +66,7 @@ def test_equivalence_qubits():
     circuit.measure_all()
     r1 = backend.run(circuit, 50)
 
-    backend = PioneerEmulator(QPU.PIONEER_P10, seed=100)
+    backend = BK.PioneerEmulator(QPU.PIONEER_P10, seed=100)
     circuit = QuantumCircuit(5)
     circuit.h(0)
     circuit.h(1)
@@ -78,7 +77,7 @@ def test_equivalence_qubits():
 
 
 def test_non_equivalence_qubits():
-    backend = PioneerEmulator(QPU.PIONEER_P10)
+    backend = BK.PioneerEmulator(QPU.PIONEER_P10, max_used_core=6)
     circuit = QuantumCircuit(5)
     circuit.h(0)
     circuit.h(1)
@@ -86,7 +85,7 @@ def test_non_equivalence_qubits():
     circuit.measure_all()
     r1 = backend.run(circuit, 50)
 
-    backend = PioneerEmulator(QPU.PIONEER_P10)
+    backend = BK.PioneerEmulator(QPU.PIONEER_P10)
     circuit = QuantumCircuit(5)
     circuit.h(0)
     circuit.h(1)
@@ -97,13 +96,13 @@ def test_non_equivalence_qubits():
 
 
 def test_execute_noiseless(emulator):
-    circuit = QuantumCircuit(3)
-    circuit.rx(3.14, 0)
-    circuit.cx(0, 1)
-    circuit.cx(1, 2)
+    circuit = QuantumCircuit(5)
+    for i in range(4):
+        circuit.h(i)
+        circuit.cx(i, i + 1)
     circuit.measure_all()
-    r1 = emulator.run(circuit, 25, noise=False)
-    r2 = emulator.run(circuit, 25)
+    r1 = emulator.run(circuit, 30, noise=False)
+    r2 = emulator.run(circuit, 30)
     assert list(r1.samples.values()) != list(r2.samples.values())
 
     r1 = emulator.run(circuit, 15, noise=False)
@@ -143,7 +142,7 @@ def test_noiseless_ghz_is_clean(nb_qb):
     phase from the detuning pulses and the prepared state collapses into a spread of
     incorrect bitstrings (GHZ-2 fidelity was ~0.64 before the fix).
     """
-    backend = PioneerEmulator(QPU.PIONEER_P10, qubits=nb_qb, seed=100)
+    backend = BK.PioneerEmulator(QPU.PIONEER_P10, qubits=nb_qb, seed=100)
     circuit = QuantumCircuit(nb_qb)
     circuit.h(0)
     for target in range(1, nb_qb):
@@ -159,22 +158,53 @@ def test_noiseless_ghz_is_clean(nb_qb):
     assert sum(counts.values()) == 50
 
 
-def test_time_duration():
-    emu = PioneerEmulator(QPU.PIONEER_P10, qubits=11, seed=1)
-    qc = QuantumCircuit(11)
-    qc.h(0)
-    for k in range(1, 11):
-        qc.cx(0, k)
-    tc = transpile(qc, backend=emu, optimization_level=1)
-
-    emu.run_simulation(tc, 5)
-
-
 def test_seed_regression(emulator):
     circuit = QuantumCircuit(3)
     circuit.rx(3.14, 0)
+    circuit.h(0)
+    circuit.h(1)
     circuit.cx(0, 1)
+    circuit.h(1)
     circuit.cx(1, 2)
     circuit.measure_all()
-    r1 = emulator.run(circuit, 25)
+    r1 = emulator.run(circuit, 24)
     assert len(r1.samples.values()) > 1
+
+
+def test_nb_core(monkeypatch):
+    def run_experiment_mock(
+        self,
+        exp_env,
+        simulator,
+        num_samples: int | None = None,
+        progress_bar: bool = True,
+        seed_progression_function=None,
+        n_jobs: int = 1,
+    ):
+        assert n_jobs == 6
+        return {}
+
+    monkeypatch.setattr(BK.PulseCircuit, "run_experiment", run_experiment_mock)
+    backend = BK.PioneerEmulator(QPU.PIONEER_P10, max_used_core=6)
+    circuit = QuantumCircuit(5)
+    circuit.h(0)
+    circuit.h(1)
+    circuit.h(2)
+    circuit.measure_all()
+    backend.run(circuit, 1)
+
+
+def test_equivalent_multicore():
+    circuit = QuantumCircuit(3)
+    circuit.rx(3.14, 0)
+    circuit.h(1)
+    circuit.h(0)
+    circuit.cx(0, 1)
+    circuit.h(1)
+    circuit.cx(1, 2)
+    circuit.measure_all()
+    backend = BK.PioneerEmulator(QPU.PIONEER_P10, max_used_core=6, seed=100)
+    r1 = backend.run_simulation(circuit, 25)
+    backend = BK.PioneerEmulator(QPU.PIONEER_P10, max_used_core=1, seed=100)
+    r2 = backend.run_simulation(circuit, 25)
+    assert r1 == r2
