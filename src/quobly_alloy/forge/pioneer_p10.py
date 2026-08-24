@@ -13,7 +13,7 @@ from spin_pulse.environment.noise import NoiseType
 _DEFAULT_QUBIT: Final[int] = 10
 """Max default number of qubits in the QPU"""
 
-_QUBIT_MAX: Final[int] = 29
+_QUBIT_MAX: Final[int] = 32
 """Max number of qubit for this family."""
 
 _t_z = 100

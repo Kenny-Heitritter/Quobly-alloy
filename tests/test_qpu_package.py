@@ -21,4 +21,4 @@ def test_qpu_exist():
 
 def test_max_qb():
     with pytest.raises(ValueError):
-        get_qpu_hw_spec(QPU.PIONEER_P10, qubits=30)
+        get_qpu_hw_spec(QPU.PIONEER_P10, qubits=35)
