@@ -64,6 +64,9 @@ jobs:
           uv venv
           source .venv/bin/activate
           uv pip install -e .
+          # Draft dependency: replace with the published SpinPulse release before merge.
+          # Full commit pin makes this cross-repository feature test reproducible.
+          uv pip install 'spin-pulse @ git+https://github.com/Kenny-Heitritter/SpinPulse.git@cfb4a8fdd6d132cb019227b6f15d5de5c52830ce'
           uv pip install pytest
           pytest tests
 
