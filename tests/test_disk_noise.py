@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import numpy as np
+import pytest
 from qiskit import QuantumCircuit
 from spin_pulse import PulseCircuit
 
@@ -59,3 +60,11 @@ def test_noiseless_execution_does_not_access_noise_directory(tmp_path):
     counts = emulator.run_simulation(circuit(), shots=20, noise=False)
     assert sum(counts.values()) == 20
     assert not directory.exists()
+
+
+def test_empty_noise_directory_does_not_use_working_directory(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    emulator = PioneerEmulator(QPU.PIONEER_P10, qubits=2, noise_directory="")
+    with pytest.raises(ValueError, match="noise_directory must name"):
+        emulator.run_simulation(circuit(), shots=1)
+    assert list(tmp_path.iterdir()) == []

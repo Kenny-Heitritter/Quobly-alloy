@@ -75,6 +75,8 @@ def attach_env_to_circuit(
     *,
     noise_directory: str | os.PathLike | None = None,
 ) -> ExperimentalEnvironment:
+    if noise_directory is not None and not os.fspath(noise_directory):
+        raise ValueError("noise_directory must name an existing directory")
     duration = circuit.duration * max(10, shots_number)
     if duration % 2 == 1:  # Odd value are not accepted by spin pulse.
         duration += 1
