@@ -1,5 +1,5 @@
 # Copyright (c) 2026 by Quobly.
-# Added by qBraid in 2026 to verify disk-backed noise integration.
+# Added by Kenny Heitritter in 2026 to verify disk-backed noise integration.
 from pathlib import Path
 
 import numpy as np

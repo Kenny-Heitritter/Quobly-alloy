@@ -1,6 +1,6 @@
 # --------------------------------------------------------------------------------------
 # Copyright (c) 2026 by Quobly
-# Modified by qBraid in 2026: pass optional disk storage to SpinPulse.
+# Modified by Kenny Heitritter in 2026: pass optional disk storage to SpinPulse.
 # --------------------------------------------------------------------------------------
 """Pioneer-P10 10 qubits hardware device description."""
 

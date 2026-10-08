@@ -1,6 +1,6 @@
 # --------------------------------------------------------------------------------------
 # Copyright (c) 2026 by Quobly
-# Modified by qBraid in 2026: expose optional disk-backed noise storage.
+# Modified by Kenny Heitritter in 2026: expose optional disk-backed noise storage.
 # --------------------------------------------------------------------------------------
 """Module containing the Quobly Noise Accurate Simulator"""
 

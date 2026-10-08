@@ -72,7 +72,7 @@ result = emulator.run_simulation(circuit=circuit)
 
 ## Disk-backed noise histories
 
-*Documentation added by qBraid in 2026.*
+*Documentation added by Kenny Heitritter in 2026.*
 
 With a SpinPulse build containing
 [disk-backed pink-noise support](https://github.com/quobly-sw/SpinPulse/pull/26),
